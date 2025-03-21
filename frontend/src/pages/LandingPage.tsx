@@ -1,36 +1,57 @@
 import { CardsChat } from '@/components/chat';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useUser } from '@/context/UserProvider';
+import { timeStamp } from 'console';
+import { MessageTypes } from '@/types/types';
 
-interface Message {
-  content: string;
-  timestamp: number;
-  type: 'user' | 'system';
-}
 
 const App = () => {
+  const { userId, setUserId } = useUser()!;
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const [messages, setMessages] = useState<MessageTypes[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
 
-  useEffect(() => {
+
+  const connectWebSocket = useCallback(() => {
     const ws = new WebSocket('ws://localhost:8080');
     
     ws.onopen = () => {
       console.log('Connected to WebSocket server');
+      
       setSocket(ws);
-      setConnectionStatus('connected');
     };
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         console.log('Received message:', data);
-        setMessages(prev => [...prev, {
-          content: data.message || data.content,
-          timestamp: Date.now(),
-          type: data.type === 'PAIR_CONNECTED' ? 'system' : 'user'
-        }]);
+
+        if (data.type === "USER_ID") {
+          console.log("Received userId:", data.userId);
+          setUserId(data.userId);
+          return;
+        }
+        if(data.type === "PAIR_CONNECTED") {
+          console.log("Received message:", data.message);
+          setConnectionStatus('connected');
+          return;
+        }
+        if(data.type === "PAIR_DISCONNECTED") {
+          console.log("Received message:", data.message);
+          setConnectionStatus('disconnected');
+          return;
+        }
+        if(data.type === "MESSAGE") {
+          console.log("Received message:", data.message);
+          setMessages(prev => [...prev, {
+            userId: data.content.userId,
+            message: data.content.message,
+            timeStamp: data.content.timeStamp
+          }]);
+          console.log("Messages:", messages);
+          
+          return;
+        }
       } catch (error) {
         console.error('Error parsing message:', error);
       }
@@ -49,19 +70,33 @@ const App = () => {
     return () => {
       ws.close();
     };
+  }, [userId]);
+
+  useEffect(() => {
+    connectWebSocket();
+    return () => {
+      socket?.close();
+    };
   }, []);
 
-  const sendMessage = (message: string) => {
+  const handleReconnect = () => {
+    setConnectionStatus('connecting');
+    connectWebSocket();
+  }
+  const sendMessage =  (message: string) => {
     if (!message.trim()) return;
     
     if (socket && socket.readyState === WebSocket.OPEN) {
       try {
         const messageData = JSON.stringify({
-          content: message,
-          timestamp: Date.now()
+          type: "MESSAGE",
+          content: {
+            userId,
+            message: message,
+            timeStamp: Date.now()
+          }
         });
-        socket.send(messageData);
-        setInputMessage('');
+         socket.send(messageData);
       } catch (error) {
         console.error('Error sending message:', error);
       }
@@ -70,7 +105,9 @@ const App = () => {
 
   return (
     <div className='flex max-h-screen flex-col bg-white/30 p-6 md:p-10'>  
-      <CardsChat/>
+    {connectionStatus === 'connecting' && <p>Connecting...</p>}
+    {connectionStatus === 'connected' && <CardsChat messages={messages} sendMessage={sendMessage} />}
+    {connectionStatus === 'disconnected' && <p>Disconnected</p>}
     </div>
   );
 };

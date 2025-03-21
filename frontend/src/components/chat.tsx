@@ -17,12 +17,14 @@ import {
     CardHeader,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { MessageTypes } from "@/types/types"
+import { useUser } from "@/context/UserProvider"
 
-export function CardsChat() {
-    const [messages, setMessages] = React.useState([
-        { role: "agent", content: "Hi, how can I help you today?" },
-        { role: "agent", content: "Hi, how can I help you today?" },
-    ])
+export function CardsChat({messages, sendMessage}: {
+    messages: MessageTypes[],
+    sendMessage: (message: string) => void
+}) {
+    const {userId} = useUser()!
     const [input, setInput] = React.useState("")
     const inputLength = input.trim().length
     const messagesEndRef = React.useRef<HTMLDivElement>(null)
@@ -61,12 +63,10 @@ export function CardsChat() {
                             key={index}
                             className={cn(
                                 "w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 text-sm shadow-sm",
-                                message.role === "user"
-                                    ? "ml-auto bg-blue-500 text-white"
-                                    : "bg-gray-200 text-gray-900"
+                                message.userId === userId ? "bg-blue-100 text-blue-800 self-end" : "bg-gray-100 text-gray-800 self-start"
                             )}
                         >
-                            {message.content}
+                            {message.message}
                         </div>
                     ))}
                     <div ref={messagesEndRef} />
@@ -78,7 +78,7 @@ export function CardsChat() {
                     onSubmit={(event) => {
                         event.preventDefault()
                         if (inputLength === 0) return
-                        setMessages([...messages, { role: "user", content: input }])
+                        sendMessage(input)
                         setInput("")
                     }}
                     className="flex w-full items-center space-x-2"

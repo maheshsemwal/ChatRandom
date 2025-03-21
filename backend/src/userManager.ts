@@ -28,6 +28,10 @@ export class UserManager {
 
     public async userConnect(ws: WebSocket, userId: string) {
         try {
+            ws.send(JSON.stringify({
+                type: "USER_ID",
+                userId: userId
+            }));
             // Use regular client for transactions
             await this.redisClient.watch("pendingRooms");
             const pendingRoom = await this.redisClient.lIndex("pendingRooms", 0);
@@ -96,7 +100,13 @@ export class UserManager {
     private setupDisconnectionHandling(ws: WebSocket, roomId: string) {
         const cleanup = () => {
             if (!roomId) return;
-
+            this.redisClient.publish(
+                roomId,
+                JSON.stringify({
+                    type: "PAIR_DISCONNECTED",
+                    message: "Peer has left the room"
+                })
+            );
             const subscribers = roomSubscriptions.get(roomId) || [];
             roomSubscriptions.set(roomId, subscribers.filter(s => s !== ws));
 

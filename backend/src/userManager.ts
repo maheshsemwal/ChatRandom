@@ -26,50 +26,58 @@ export class UserManager {
         return UserManager.instance;
     }
 
-    public async userConnect(ws: WebSocket, userId: string) {
+    public async userConnect(ws: WebSocket, userId: string, userName: string) {
         try {
-            ws.send(JSON.stringify({
-                type: "USER_ID",
-                userId: userId
-            }));
             // Use regular client for transactions
             await this.redisClient.watch("pendingRooms");
             const pendingRoom = await this.redisClient.lIndex("pendingRooms", 0);
-
+    
             if (!pendingRoom) {
+                // No pending user, create new room and wait
                 const newRoomId = `room:${uuid()}`;
                 const multi = this.redisClient.multi();
-                multi.rPush("pendingRooms", JSON.stringify({ userId, roomId: newRoomId }));
+                // ✅ Store userId and userName along with roomId
+                multi.rPush("pendingRooms", JSON.stringify({ userId, userName, roomId: newRoomId }));
                 await multi.exec();
-
+    
                 this.subscribeToRoom(newRoomId, ws);
                 this.setupMessageHandler(ws, newRoomId);
                 this.setupDisconnectionHandling(ws, newRoomId);
+    
+                console.log(`[WAITING] User ${userName} waiting in ${newRoomId}`);
             } else {
+                // Pair with the pending user
                 const multi = this.redisClient.multi();
                 multi.lPop("pendingRooms");
                 await multi.exec();
-                const { roomId } = JSON.parse(pendingRoom);
-
+    
+                // ✅ Extract the pending user's info
+                const { roomId, userId: pendingUserId, userName: pendingUserName } = JSON.parse(pendingRoom);
+    
                 this.subscribeToRoom(roomId, ws);
                 this.setupMessageHandler(ws, roomId);
-                
-                // Use regular client for publishing
+    
+                // ✅ Notify both users with the correct pending user info
+                console.log(`[PAIRING] ${userName} pairing with ${pendingUserName} in ${roomId}`);
                 this.redisClient.publish(
                     roomId,
                     JSON.stringify({
                         type: "PAIR_CONNECTED",
-                        message: "A peer has joined the room!"
+                        users: [userName, pendingUserName],
+                        message: `you are connected to Room`
                     })
                 );
-
+    
                 this.setupDisconnectionHandling(ws, roomId);
+    
+                console.log(`[PAIRED] ${userName} paired with ${pendingUserName} in ${roomId}`);
             }
         } catch (error) {
             console.error("Connection error:", error);
             ws.close(1008, "Connection failed");
         }
     }
+    
 
     private subscribeToRoom(roomId: string, ws: WebSocket) {
         

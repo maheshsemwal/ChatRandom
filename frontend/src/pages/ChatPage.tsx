@@ -2,7 +2,7 @@ import { CardsChat } from '@/components/chat';
 import { useEffect, useState, useCallback } from 'react';
 import { useUser } from '@/context/UserProvider';
 import { MessageTypes } from '@/types/types';
-import ConnectingPage from '@/components/connectingPage';
+import ConnectingPage from '@/components/ConnectingPage';
 import DisconnectedPage from '@/components/DisconnectedPage';
 
 const ChatPage = () => {

@@ -3,7 +3,11 @@ import { UserManager } from "./userManager";
 import express from 'express';
 import multer from 'multer';
 import { supabase } from "./config/supabaseConfig";
+import dotenv from "dotenv";
+
+dotenv.config();
 const wss = new WebSocketServer({ port: 8080 });
+
 
 
 const manager = UserManager.getInstance();

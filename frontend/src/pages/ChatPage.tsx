@@ -33,7 +33,12 @@ const ChatPage = () => {
 
         if (data.type === "PAIR_CONNECTED") {
           console.log("Pair connected:", data.message);
-          data.users[0] === user?.userName ? setConnectedUser(data.users[1]) : setConnectedUser(data.users[0]);
+          if (data.users[0] === user?.userName) {
+            setConnectedUser(data.users[1]);
+          } else {
+            setConnectedUser(data.users[0]);
+          }
+
           setConnectionStatus('connected');
         } else if (data.type === "PAIR_DISCONNECTED") {
           console.log("Disconnected:", data.message);
@@ -65,7 +70,7 @@ const ChatPage = () => {
   }, [user]);
 
   useEffect(() => {
-    if(!user){ 
+    if (!user) {
       navigate("/login")
       return;
     }
@@ -73,7 +78,7 @@ const ChatPage = () => {
     return () => {
       ws.close();
     };
-  }, [connectWebSocket]);
+  }, [connectWebSocket, navigate, user]);
 
   const handleReconnect = () => {
     setConnectionStatus('connecting');
@@ -81,22 +86,22 @@ const ChatPage = () => {
     setSocket(ws);
   };
 
-  
+
   return (
     <div>
-    {connectionStatus === 'error' && <p>Error occurred. Try refreshing.</p>}
-  {connectionStatus === 'connecting' && <ConnectingPage />} 
-  {connectionStatus === 'connected' && (
-      <CardsChat 
-        messages={messages} 
-        socket={socket}
-        connectedUser={connectedUser} 
-      />
-    )} 
-    {connectionStatus === 'disconnected' && (
-      <DisconnectedPage handleReconnect={handleReconnect} />
-     )} 
-  </div>
+      {connectionStatus === 'error' && <p>Error occurred. Try refreshing.</p>}
+      {connectionStatus === 'connecting' && <ConnectingPage />}
+      {connectionStatus === 'connected' && (
+        <CardsChat
+          messages={messages}
+          socket={socket}
+          connectedUser={connectedUser}
+        />
+      )}
+      {connectionStatus === 'disconnected' && (
+        <DisconnectedPage handleReconnect={handleReconnect} />
+      )}
+    </div>
   );
 };
 

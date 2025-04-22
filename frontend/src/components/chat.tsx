@@ -71,7 +71,7 @@ export function CardsChat({
         setPreviewUrl(fileUrl)
     }
 
-    const { getRootProps, getInputProps } = useDropzone({
+    const { getRootProps } = useDropzone({
         onDrop: (acceptedFiles) => handleFileUpload(acceptedFiles[0]),
         accept: {
             'image/*': [],

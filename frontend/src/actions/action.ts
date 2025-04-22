@@ -17,7 +17,8 @@ export const sendFile = async (file: File): Promise<{ fileUrl: string | null; er
     if (!url.fileUrl) throw new Error("File URL not found in response");
 
     return { fileUrl: url.fileUrl, error: null };
-  } catch (err: any) {
-    return { fileUrl: null, error: err.message || "Unknown error" };
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    return { fileUrl: null, error: errorMessage };
   }
 };

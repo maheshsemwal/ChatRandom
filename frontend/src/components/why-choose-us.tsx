@@ -2,54 +2,47 @@
 
 import { motion } from "framer-motion"
 import { Users, Shield, Video, Brain } from "lucide-react"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 
 const features = [
   {
-    icon: <Users className="w-10 h-10" />,
+    icon: <Users className="w-6 h-6" />,
     title: "Random Instant Matches",
     description: "Meet someone new anytime with our instant matching system.",
-    gradient: "from-violet-500 to-purple-600",
-    iconBg: "bg-violet-500/20",
+    iconBg: "bg-violet-500/10 text-violet-500",
     delay: 0.1,
+    comingSoon: false
   },
   {
-    icon: <Shield className="w-10 h-10" />,
+    icon: <Shield className="w-6 h-6" />,
     title: "Privacy Focused",
     description: "No personal details required. Chat with complete anonymity.",
-    gradient: "from-pink-500 to-rose-600",
-    iconBg: "bg-pink-500/20",
+    iconBg: "bg-pink-500/10 text-pink-500",
     delay: 0.2,
+    comingSoon: false
   },
   {
-    icon: <Video className="w-10 h-10" />,
+    icon: <Video className="w-6 h-6" />,
     title: "Multiple Chat Modes",
     description: "Text, Voice & Video options coming soon for diverse communication.",
-    gradient: "from-blue-500 to-cyan-600",
-    iconBg: "bg-blue-500/20",
+    iconBg: "bg-blue-500/10 text-blue-500",
     delay: 0.3,
+    comingSoon: true
   },
   {
-    icon: <Brain className="w-10 h-10" />,
+    icon: <Brain className="w-6 h-6" />,
     title: "Smart Matching Algorithm",
     description: "Connect with like-minded people based on interests and preferences.",
-    gradient: "from-emerald-500 to-green-600",
-    iconBg: "bg-emerald-500/20",
+    iconBg: "bg-emerald-500/10 text-emerald-500",
     delay: 0.4,
-  },
+    comingSoon: true
+  }
 ]
 
 export default function WhyChooseUs() {
   return (
-    <section className="py-24 relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0 bg-black/90"></div>
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-30"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-30"></div>
-      <div className="absolute -top-[500px] -left-[500px] w-[1000px] h-[1000px] rounded-full bg-purple-500/10 blur-3xl"></div>
-      <div className="absolute -bottom-[500px] -right-[500px] w-[1000px] h-[1000px] rounded-full bg-pink-500/10 blur-3xl"></div>
-
-      <div className="container mx-auto px-4 relative z-10">
+    <section className="py-24 bg-background text-foreground">
+      <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -58,15 +51,15 @@ export default function WhyChooseUs() {
           className="text-center mb-20"
         >
           <div className="inline-block mb-3">
-            <div className="flex items-center justify-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10">
-              <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-              <span className="text-sm font-medium text-white/80">Features</span>
+            <div className="flex items-center justify-center space-x-2 px-4 py-1.5 rounded-full border border-border bg-muted text-muted-foreground text-sm font-medium">
+              <div className="w-2 h-2 rounded-full bg-purple-500" />
+              <span>Features</span>
             </div>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Why Choose Us?
           </h2>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Discover what makes our chat platform unique and why users love it.
           </p>
         </motion.div>
@@ -78,45 +71,31 @@ export default function WhyChooseUs() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{
-                duration: 0.7,
+                duration: 0.6,
                 delay: feature.delay,
                 ease: [0.22, 1, 0.36, 1],
               }}
               viewport={{ once: true }}
-              whileHover={{
-                y: -8,
-                transition: { duration: 0.2, ease: "easeOut" },
-              }}
-              className="group"
             >
-              <Card className="border-0 bg-white/[0.03] backdrop-blur-xl shadow-[0_0_1px_1px_rgba(255,255,255,0.1)] rounded-2xl overflow-hidden h-full">
-                <div className="p-8 relative">
-                  {/* Gradient border on hover */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <div className="absolute inset-[1px] bg-black/90 rounded-2xl z-10"></div>
-                    <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} rounded-2xl z-0`}></div>
-                  </div>
-
-                  <div className="relative z-20">
-                    {/* Icon with gradient background */}
-                    <div
-                      className={`w-16 h-16 rounded-2xl ${feature.iconBg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      <div className={`text-gradient bg-gradient-to-br ${feature.gradient}`}>{feature.icon}</div>
+              <Card className="relative group overflow-hidden transition-all duration-300 border border-border bg-card text-card-foreground hover:border-primary hover:bg-accent hover:shadow-lg hover:scale-[1.02]">
+                <CardContent className="p-6 relative transition-colors duration-300">
+                  {feature.comingSoon && (
+                    <div className="absolute top-0 right-0 bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded-bl-md dark:bg-yellow-500 dark:text-black z-10">
+                      Coming Soon
                     </div>
-
-                    {/* Title with gradient on hover */}
-                    <h3 className="text-2xl font-bold mb-4 text-white group-hover:bg-clip-text group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/70 transition-all duration-300">
-                      {feature.title}
-                    </h3>
-
-                    {/* Description */}
-                    <p className="text-white/60 text-lg leading-relaxed">{feature.description}</p>
-
-                    {/* Animated underline */}
-                    <div className="mt-6 h-[2px] w-12 bg-gradient-to-r from-white/40 to-transparent rounded-full group-hover:w-24 transition-all duration-300"></div>
+                  )}
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition duration-300 group-hover:shadow-md group-hover:scale-105 ${feature.iconBg}`}
+                  >
+                    {feature.icon}
                   </div>
-                </div>
+                  <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {feature.description}
+                  </p>
+                </CardContent>
               </Card>
             </motion.div>
           ))}
@@ -125,4 +104,3 @@ export default function WhyChooseUs() {
     </section>
   )
 }
-

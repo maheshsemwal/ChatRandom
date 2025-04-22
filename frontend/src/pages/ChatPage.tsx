@@ -5,6 +5,7 @@ import { MessageTypes } from '@/types/types';
 import ConnectingPage from '@/components/ConnectingPage';
 import DisconnectedPage from '@/components/DisconnectedPage';
 import { useNavigate } from 'react-router-dom';
+import ErrorPage from '@/components/ErrorPage';
 
 const ChatPage = () => {
   const { user } = useUser()!;
@@ -15,7 +16,7 @@ const ChatPage = () => {
   const navigate = useNavigate()
 
   const connectWebSocket = useCallback(() => {
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket('wss://chatrandom-dljz.onrender.com');
 
     ws.onopen = () => {
       console.log('Connected to WebSocket server');
@@ -89,7 +90,7 @@ const ChatPage = () => {
 
   return (
     <div>
-      {connectionStatus === 'error' && <p>Error occurred. Try refreshing.</p>}
+      {connectionStatus === 'error' && <ErrorPage/>}
       {connectionStatus === 'connecting' && <ConnectingPage />}
       {connectionStatus === 'connected' && (
         <CardsChat

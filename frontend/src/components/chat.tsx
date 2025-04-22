@@ -1,18 +1,9 @@
 import * as React from "react"
-import { Send, Paperclip, Smile } from "lucide-react"
+import { Send, Paperclip, Smile, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-    Avatar,
-    AvatarFallback,
-    AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-} from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { MessageTypes } from "@/types/types"
 import { useUser } from "@/context/UserProvider"
@@ -37,10 +28,10 @@ export function CardsChat({
     const [showConnectionMessage, setShowConnectionMessage] = React.useState(true)
     const [ImagePreviewOpen, setImagePreviewOpen] = React.useState(false)
     const [imagePreviewUrl, setImagePreviewUrl] = React.useState<string | null>(null)
+    const [sending, setSending] = React.useState(false)
+
     const messagesEndRef = React.useRef<HTMLDivElement>(null)
     const isFirstRender = React.useRef(true)
-
-    const inputLength = input.trim().length
 
     React.useEffect(() => {
         const timer = setTimeout(() => {
@@ -58,7 +49,6 @@ export function CardsChat({
         }
     }, [messages])
 
-    // Cleanup preview URL when it changes or on unmount
     React.useEffect(() => {
         if (!previewUrl) return
         return () => URL.revokeObjectURL(previewUrl)
@@ -74,8 +64,8 @@ export function CardsChat({
     const { getRootProps } = useDropzone({
         onDrop: (acceptedFiles) => handleFileUpload(acceptedFiles[0]),
         accept: {
-            'image/*': [],
-            'application/pdf': [],
+            "image/*": [],
+            "application/pdf": [],
         },
         multiple: false,
     })
@@ -84,14 +74,22 @@ export function CardsChat({
 
     const formatTime = (timestamp: string) => {
         const date = new Date(timestamp)
-        return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`
+        return `${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`
     }
 
     const sendMessage = async (message: string) => {
-        if (!message.trim() || !socket || socket.readyState !== WebSocket.OPEN) return
+        if ((!message.trim() && !file) || !socket || socket.readyState !== WebSocket.OPEN) return
 
-        let messageData: string | undefined = undefined
+        // Clear immediately
+        setInput("")
+        setPreviewUrl(null)
+        setFile(null)
+        setImagePreviewOpen(false)
+        setSending(true)
+
         try {
+            let messageData: string | undefined = undefined
+
             if (file) {
                 const result = await sendFile(file)
                 if (result.error) {
@@ -119,32 +117,42 @@ export function CardsChat({
             }
 
             socket.send(messageData)
-            setFile(null)
-            setPreviewUrl(null)
+
         } catch (error) {
             console.error("Error sending message:", error)
+        } finally {
+            setSending(false)
         }
     }
 
     return (
-        <Card className="h-screen flex flex-col shadow-md rounded-lg overflow-hidden bg-background text-foreground">
-            <CardHeader className="flex flex-row items-center p-4 bg-background border-b border-border">
+        <Card className="h-screen flex flex-col shadow-lg rounded-2xl overflow-hidden bg-background text-foreground border-2 border-gray-600">
+            <CardHeader className="flex flex-row items-center p-4 bg-background bg-opacity-70 backdrop-blur-xl border-b border-gray-700">
                 <div className="flex items-center space-x-4">
-                    <Avatar>
+                    <Avatar className="transition-all duration-200 hover:scale-110 hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 cursor-pointer">
                         <AvatarImage src="/avatars/01.png" alt="Image" />
                         <AvatarFallback>{getInitial(connectedUser)}</AvatarFallback>
                     </Avatar>
-                    <div>
-                        <p className="text-lg font-semibold">{connectedUser}</p>
+                    <div className="text-white space-y-1">
+                        <p className="text-xl font-bold tracking-wider">{connectedUser}</p>
+                        <p className="text-sm text-gray-300">Online</p>
                     </div>
                 </div>
             </CardHeader>
 
-            <CardContent className="flex-1 p-4 overflow-auto bg-primary-foreground" {...getRootProps()}>
-                {/* <input {...getInputProps()} /> */}
+            <CardContent
+                className="flex-1 p-4 overflow-auto bg-gradient-to-tl from-blue-900 via-purple-800 to-pink-700 text-white rounded-lg"
+                style={{
+                    backgroundImage: "url('/assets/futuristic-pattern.svg')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    filter: "brightness(0.9)",
+                }}
+                {...getRootProps()}
+            >
                 <div className="flex flex-col space-y-4">
                     {showConnectionMessage && (
-                        <div className="bg-green-100 text-green-800 text-center p-2 rounded">
+                        <div className="bg-blue-900 text-white text-center p-3 rounded-lg shadow-xl">
                             You are connected to <span className="font-semibold">{connectedUser}</span>
                         </div>
                     )}
@@ -153,10 +161,10 @@ export function CardsChat({
                         <div
                             key={index}
                             className={cn(
-                                "w-max max-w-[75%] flex-col gap-1 rounded-lg px-3 py-2 text-sm shadow-sm",
+                                "max-w-[80%] flex flex-col gap-2 rounded-xl px-5 py-3 text-sm shadow-lg transition-all",
                                 message.userId === user?.userId
-                                    ? "bg-green-800 text-white self-end"
-                                    : "bg-muted text-muted-foreground self-start"
+                                    ? "bg-gradient-to-r from-green-500 to-green-700 text-white self-end"
+                                    : "bg-gradient-to-r from-gray-600 to-gray-800 text-gray-200 self-start"
                             )}
                         >
                             <div>
@@ -167,14 +175,13 @@ export function CardsChat({
                                         <img
                                             src={message.message.file}
                                             alt="file"
-                                            className="w-32 h-32 object-cover rounded-md mb-2 cursor-pointer"
+                                            className="w-32 h-32 object-cover rounded-lg mb-3 cursor-pointer transition-all transform hover:scale-110"
                                             onClick={() => {
                                                 if (typeof message.message !== "string") {
                                                     setImagePreviewUrl(message.message.file)
                                                 }
                                                 setImagePreviewOpen(true)
                                             }}
-
                                         />
                                         <div className="text-sm text-muted-foreground">
                                             {message.message.text.length > 50
@@ -186,8 +193,8 @@ export function CardsChat({
                             </div>
                             <span
                                 className={cn(
-                                    "text-[10px] mt-1",
-                                    message.userId === user?.userId ? "text-white/80" : "text-muted-foreground"
+                                    "text-xs mt-1 opacity-75",
+                                    message.userId === user?.userId ? "text-white" : "text-gray-300"
                                 )}
                             >
                                 {formatTime(message.timeStamp)}
@@ -198,20 +205,17 @@ export function CardsChat({
                 </div>
             </CardContent>
 
-            <CardFooter className="p-2 bg-background border-t border-border h-20">
+            <CardFooter className="p-4 bg-background border-t border-gray-700 flex items-center justify-between space-x-4">
                 <form
                     onSubmit={async (event) => {
                         event.preventDefault()
-                        if (inputLength === 0) return
                         await sendMessage(input)
-                        setInput("")
                     }}
-                    className="flex w-full items-center space-x-2"
+                    className="flex w-full items-center space-x-4"
                 >
-                    {/* Emoji & File Upload */}
-                    <div className="flex space-x-2">
-                        <Button size="icon" variant="ghost" type="button">
-                            <Smile className="w-5 h-5" />
+                    <div className="flex space-x-3">
+                        <Button size="icon" variant="ghost" type="button" className="hover:bg-blue-700 transition-all duration-200">
+                            <Smile className="w-6 h-6 text-blue-600" />
                         </Button>
                         <input
                             type="file"
@@ -230,16 +234,16 @@ export function CardsChat({
                             size="icon"
                             variant="ghost"
                             type="button"
+                            className="hover:bg-blue-700 transition-all duration-200"
                             onClick={() => document.getElementById("file-upload")?.click()}
                         >
-                            <Paperclip className="w-5 h-5" />
+                            <Paperclip className="w-6 h-6 text-blue-600" />
                         </Button>
                     </div>
 
-                    {/* Message Input */}
                     <div className="flex-1 relative">
                         {previewUrl && (
-                            <div className="absolute -top-32 left-0 z-10">
+                            <div className="absolute -top-28 left-0 z-10">
                                 <FilePreviewBox
                                     file={previewUrl}
                                     onClose={() => {
@@ -252,29 +256,37 @@ export function CardsChat({
                         <Input
                             id="message"
                             placeholder="Type your message..."
-                            className="flex bg-background text-foreground border-none focus:ring-0"
+                            className="bg-gray-800 text-white rounded-xl shadow-lg focus:ring focus:ring-blue-400 hover:bg-gray-700 transition-all duration-200"
                             autoComplete="off"
                             value={input}
                             onChange={(event) => setInput(event.target.value)}
                         />
                     </div>
 
-                    {/* Send Button */}
                     <Button
                         type="submit"
                         size="icon"
-                        className="bg-green-500 text-white scale-110"
-                        disabled={inputLength === 0}
+                        className={cn(
+                            "bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:scale-110 transition-all duration-200",
+                            sending && "cursor-not-allowed opacity-70"
+                        )}
+                        disabled={!input.trim() && !file || sending}
                     >
-                        <Send />
+                        {sending ? <Loader2 className="animate-spin w-5 h-5" /> : <Send />}
                         <span className="sr-only">Send</span>
                     </Button>
                 </form>
             </CardFooter>
-            {ImagePreviewOpen && imagePreviewUrl && <ImagePreview imageUrl={imagePreviewUrl} onClose={() => { 
-                setImagePreviewOpen(false)
-                setImagePreviewUrl(null)
-                 }} />}
+
+            {ImagePreviewOpen && imagePreviewUrl && (
+                <ImagePreview
+                    imageUrl={imagePreviewUrl}
+                    onClose={() => {
+                        setImagePreviewOpen(false)
+                        setImagePreviewUrl(null)
+                    }}
+                />
+            )}
         </Card>
     )
 }

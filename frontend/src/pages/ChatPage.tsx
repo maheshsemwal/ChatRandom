@@ -4,6 +4,7 @@ import { useUser } from '@/context/UserProvider';
 import { MessageTypes } from '@/types/types';
 import ConnectingPage from '@/components/ConnectingPage';
 import DisconnectedPage from '@/components/DisconnectedPage';
+import { useNavigate } from 'react-router-dom';
 
 const ChatPage = () => {
   const { user } = useUser()!;
@@ -11,6 +12,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<MessageTypes[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
   const [connectedUser, setConnectedUser] = useState<string | null>(null);
+  const navigate = useNavigate()
 
   const connectWebSocket = useCallback(() => {
     const ws = new WebSocket('ws://localhost:8080');
@@ -63,6 +65,10 @@ const ChatPage = () => {
   }, [user]);
 
   useEffect(() => {
+    if(!user){ 
+      navigate("/login")
+      return;
+    }
     const ws = connectWebSocket();
     return () => {
       ws.close();
@@ -75,38 +81,21 @@ const ChatPage = () => {
     setSocket(ws);
   };
 
-  const sendMessage = (message: string) => {
-    if (!message.trim() || !socket || socket.readyState !== WebSocket.OPEN) return;
-    try {
-      const messageData = JSON.stringify({
-        type: "MESSAGE",
-        content: {
-          userId: user?.userId,
-          message,
-          timeStamp: Date.now()
-        }
-      });
-      
-      socket.send(messageData);
-    } catch (error) {
-      console.error('Error sending message:', error);
-    }
-  };
-
+  
   return (
     <div>
     {connectionStatus === 'error' && <p>Error occurred. Try refreshing.</p>}
-    {connectionStatus === 'connecting' && <ConnectingPage />} 
-   {connectionStatus === 'connected' && (
+  {connectionStatus === 'connecting' && <ConnectingPage />} 
+  {connectionStatus === 'connected' && (
       <CardsChat 
         messages={messages} 
-        sendMessage={sendMessage} 
+        socket={socket}
         connectedUser={connectedUser} 
       />
-    )}
+    )} 
     {connectionStatus === 'disconnected' && (
       <DisconnectedPage handleReconnect={handleReconnect} />
-    )}
+     )} 
   </div>
   );
 };

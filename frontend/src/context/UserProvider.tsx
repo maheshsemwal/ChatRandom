@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface UserType {
   userId: string;
@@ -18,13 +17,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   })
-  const navigate = useNavigate()
 
   useEffect(() => {
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      navigate("/login");
     }
   }, [user]);
 

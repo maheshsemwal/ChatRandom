@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/usermanager.ts"],"version":"5.7.2"}
+{"root":["./src/index.ts","./src/server.ts","./src/userManager.ts","./src/config/supabaseConfig.ts","./src/controllers/messageController.ts","./src/routes/messageRoutes.ts"],"version":"5.7.2"}

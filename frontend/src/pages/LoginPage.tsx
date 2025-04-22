@@ -10,7 +10,7 @@ const LoginPage = () => {
   useEffect(() => {
     if (user) {
       console.log(user);
-      navigate('/');
+      navigate('/chat');
     }
   }, [user, navigate]);
   return (

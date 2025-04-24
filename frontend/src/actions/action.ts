@@ -6,7 +6,7 @@ export const sendFile = async (file: File): Promise<{ fileUrl: string | null; er
   data.append("image", file);
 
   try {
-    const response = await axios.post("/api/image-upload", data, {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/image-upload`, data, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

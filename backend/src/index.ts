@@ -5,10 +5,18 @@ import multer from 'multer';
 import { supabase } from "./config/supabaseConfig";
 import dotenv from "dotenv";
 import http from 'http';
-
+import cors from 'cors';
 dotenv.config();
 
 const app = express();
+
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
+
 const upload = multer({ storage: multer.memoryStorage() });
 const server = http.createServer(app); // ✅ Shared HTTP server
 const wss = new WebSocketServer({ server }); // ✅ Attach WebSocket to same server

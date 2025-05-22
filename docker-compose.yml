@@ -13,24 +13,32 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: dockerfile.dev
     container_name: chat-backend
     restart: always
     ports:
       - "3000:3000"
     env_file:
       - ./backend/.env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
     depends_on:
       - redis
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: dockerfile.dev
     container_name: chat-frontend
     restart: always
     ports:
       - "5173:5173"
+    volumes:
+      - ./frontend:/app            
+      - /app/node_modules           
+    command: npm run dev
     env_file:
       - ./frontend/.env
     depends_on:

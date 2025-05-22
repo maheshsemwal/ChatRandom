@@ -3,11 +3,13 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY package*.json tsconfig*.json ./ 
+
 RUN npm install --legacy-peer-deps
-RUN npm install -g typescript ts-node
+
+RUN npm install -g typescript ts-node nodemon
+
 COPY . .
-RUN npm run build
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
